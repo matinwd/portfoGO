@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Transitioning from Monoliths to Kafka-First Architectures | Amirhossein Akhlaghpour</title>
+    <meta
+      name="description"
+      content="A practical guide to migrating from monoliths to Kafka-first, event-driven architectures."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container topbar">
+        <nav class="tabs">
+          <a href="index.html" class="tab">About</a>
+          <a href="blog.html" class="tab active">Blog</a>
+          <a href="research.html" class="tab">Research</a>
+          <a href="resume.html" class="tab">Experience</a>
+        </nav>
+        <div class="icons">
+          <a href="https://github.com/mehrbod2002" aria-label="GitHub">GitHub</a>
+          <a href="https://www.linkedin.com/in/amirhossein-akhlaghpour-84676392/" aria-label="LinkedIn">LinkedIn</a>
+          <a href="mailto:m9.akhlaghpoor@gmail.com" aria-label="Email">Email</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="content">
+          <h1>Transitioning from Monoliths to Kafka-First Architectures</h1>
+          <p class="meta">Jan 2025</p>
+          <p>
+            Moving from a monolith to a Kafka-first architecture is more than just a tech swap—it is a
+            shift in philosophy. You are moving from a world where data is at rest (in a database) to
+            a world where data is in motion (in a stream).
+          </p>
+          <p>
+            In a Kafka-first world, the log becomes the source of truth, and the database becomes a
+            downstream view of that log. Here is how to navigate this transition without breaking
+            your system.
+          </p>
+
+          <h3>1. The Strategy: The Strangler Fig Pattern</h3>
+          <p>
+            You do not just switch off a monolith. You use the Strangler Fig Pattern. You wrap the
+            monolith in new event-driven services, gradually strangling its functionality until the
+            old system can be decommissioned.
+          </p>
+          <ul>
+            <li><strong>Step 1:</strong> Identify a single, high-value domain (for example, notifications or order processing).</li>
+            <li><strong>Step 2:</strong> Use Change Data Capture (CDC) to spy on the monolith’s database.</li>
+            <li><strong>Step 3:</strong> Stream those changes into Kafka and let your new microservices consume them.</li>
+          </ul>
+
+          <h3>2. Example: The E-Commerce Transformation</h3>
+          <h4>The Monolith Way (Synchronous)</h4>
+          <p>
+            The user clicks Buy. The monolith performs five tasks in one single, fragile database
+            transaction:
+          </p>
+          <ul>
+            <li>Save order to DB.</li>
+            <li>Deduct stock from inventory table.</li>
+            <li>Charge credit card (blocking API call).</li>
+            <li>Send email (blocking API call).</li>
+            <li>Update user loyalty points.</li>
+          </ul>
+          <p>
+            The risk: if the email service or credit card gateway is slow, the entire Buy button hangs.
+            If the DB connection blips, the whole transaction fails.
+          </p>
+
+          <h4>The Kafka-First Way (Asynchronous)</h4>
+          <p>
+            The user clicks Buy. The system does one thing: it produces an OrderCreated event to Kafka
+            and tells the user Order received.
+          </p>
+          <ul>
+            <li><strong>Inventory Service:</strong> Sees the event → updates stock.</li>
+            <li><strong>Payment Service:</strong> Sees the event → charges the card → produces PaymentSuccess.</li>
+            <li><strong>Email Service:</strong> Sees PaymentSuccess → sends receipt.</li>
+            <li><strong>Analytics Service:</strong> Sees OrderCreated → updates the real-time sales dashboard.</li>
+          </ul>
+
+          <h3>3. Key Patterns for Success</h3>
+          <h4>Change Data Capture (CDC)</h4>
+          <p>
+            If you cannot modify the monolith’s code yet, use a tool like Debezium. It reads the
+            database transaction logs (like Postgres WAL or MySQL binlog) and turns every INSERT or
+            UPDATE into a Kafka message. This allows your new services to stay in sync without a
+            single line of code change.
+          </p>
+
+          <h4>Transactional Outbox Pattern</h4>
+          <p>
+            When you can modify the monolith, do not just write to the DB and then try to send a
+            message to Kafka. If the Kafka send fails, you end up with ghost data.
+          </p>
+          <p>
+            The fix: write the event into an outbox table in the same database transaction as your
+            business data. A separate process then polls this table and pushes the messages to Kafka
+            reliably.
+          </p>
+
+          <h4>Dead Letter Queues (DLQ)</h4>
+          <p>
+            In Kafka, if a consumer fails to process a message, it can get stuck in a loop.
+          </p>
+          <p>
+            The fix: if a message fails after a set number of retries, move it to a dead letter topic.
+            This keeps your pipeline moving while you investigate the bad data.
+          </p>
+
+          <h3>4. Comparison: Monolith vs. Kafka-First</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Monolithic Architecture</th>
+                <th>Kafka-First Architecture</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Coupling</td>
+                <td>Tight (direct method/API calls)</td>
+                <td>Loose (event-based)</td>
+              </tr>
+              <tr>
+                <td>Scaling</td>
+                <td>Scale the whole app</td>
+                <td>Scale specific consumers</td>
+              </tr>
+              <tr>
+                <td>Error Handling</td>
+                <td>Immediate (try/catch)</td>
+                <td>Durable (retries/DLQs)</td>
+              </tr>
+              <tr>
+                <td>Data View</td>
+                <td>One gold database</td>
+                <td>Multiple materialized views</td>
+              </tr>
+              <tr>
+                <td>Complexity</td>
+                <td>Low (initially)</td>
+                <td>High (requires orchestration)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>5. Summary Checklist for Your Migration</h3>
+          <ul>
+            <li>Identify boundaries: use Domain-Driven Design (DDD) to find your first service.</li>
+            <li>Set up CDC: bridge the monolith data to Kafka without invasive code changes.</li>
+            <li>Implement idempotency: handle duplicate messages safely (at-least-once delivery).</li>
+            <li>Monitor lag: use tools like Prometheus to track consumer lag.</li>
+          </ul>
+
+          <p>
+            The transition to Kafka-first is a journey toward resilience. It allows your system to
+            survive spikes, isolate failures, and scale components independently.
+          </p>
+          <p><a href="blog.html">Back to Blog</a></p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="content footer-content">
+        <div>
+          <a href="mailto:m9.akhlaghpoor@gmail.com">m9.akhlaghpoor@gmail.com</a>
+          <button class="copy" type="button" data-copy="m9.akhlaghpoor@gmail.com">Copy</button>
+          <span>•</span>
+          <a href="tel:+447367046857">+44 7367 046857</a>
+          <button class="copy" type="button" data-copy="+447367046857">Copy</button>
+        </div>
+        <div class="footer-meta">Built with HTML, CSS, Mermaid.js. Lighthouse Score: 100/100.</div>
+      </div>
+    </footer>
+    <script type="module">
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const value = button.getAttribute("data-copy");
+          try {
+            await navigator.clipboard.writeText(value);
+            const previous = button.textContent;
+            button.textContent = "Copied";
+            setTimeout(() => {
+              button.textContent = previous;
+            }, 1200);
+          } catch (error) {
+            console.error(error);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
