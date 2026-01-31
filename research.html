@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Research | Amirhossein Akhlaghpour</title>
+    <meta name="description" content="Selected systems, backend, and blockchain research interests." />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container topbar">
+        <nav class="tabs">
+          <a href="index.html" class="tab">About</a>
+          <a href="blog.html" class="tab">Blog</a>
+          <a href="research.html" class="tab active">Research</a>
+          <a href="resume.html" class="tab">Experience</a>
+        </nav>
+        <div class="icons">
+          <a href="https://github.com/mehrbod2002" aria-label="GitHub">GitHub</a>
+          <a href="https://www.linkedin.com/in/amirhossein-akhlaghpour-84676392/" aria-label="LinkedIn"
+            >LinkedIn</a
+          >
+          <a href="mailto:m9.akhlaghpoor@gmail.com" aria-label="Email">Email</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="content">
+          <h1>Research</h1>
+          <article>
+            <h3>
+              <a href="research-comparing-concurrency.html"
+                >Comparing Concurrency Models: Go Channels vs. Rust Arc/Mutex in High-Throughput
+                Fintech</a
+              >
+            </h3>
+            <p class="meta">Deep dive</p>
+            <p>
+              A systems-level comparison of contention patterns, memory ownership, and deterministic
+              scalability when modeling transactional pipelines with Go channels versus Rust Arc/Mutex.
+            </p>
+          </article>
+          <article>
+            <h3><a href="research-blockchain-middleware.html">Secure blockchain middleware</a></h3>
+            <p class="meta">Web3 infrastructure</p>
+            <p>
+              Patterns for resilient Ethereum transaction routing, audit-grade observability, and
+              error reduction at scale.
+            </p>
+          </article>
+          <article>
+            <h3><a href="research-streaming-systems.html">Streaming systems for real-time learning</a></h3>
+            <p class="meta">Low-latency delivery</p>
+            <p>
+              Exploring backpressure-aware pipelines, gRPC control planes, and RTMP delivery with
+              GStreamer in Rust.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="content footer-content">
+        <div>
+          <a href="mailto:m9.akhlaghpoor@gmail.com">m9.akhlaghpoor@gmail.com</a>
+          <button class="copy" type="button" data-copy="m9.akhlaghpoor@gmail.com">Copy</button>
+          <span>•</span>
+          <a href="tel:+447367046857">+44 7367 046857</a>
+          <button class="copy" type="button" data-copy="+447367046857">Copy</button>
+        </div>
+        <div class="footer-meta">Built with HTML, CSS, Mermaid.js. Lighthouse Score: 100/100.</div>
+      </div>
+    </footer>
+    <script type="module">
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const value = button.getAttribute("data-copy");
+          try {
+            await navigator.clipboard.writeText(value);
+            const previous = button.textContent;
+            button.textContent = "Copied";
+            setTimeout(() => {
+              button.textContent = previous;
+            }, 1200);
+          } catch (error) {
+            console.error(error);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

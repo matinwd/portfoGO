@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{.ResearchPage.Title}} | Amirhossein Akhlaghpour</title>
+    <meta
+      name="description"
+      content="{{.ResearchPage.Description}}"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container topbar">
+        <nav class="tabs">
+          <a href="index.html" class="tab {{activeClass .ActiveTab "about"}}">About</a>
+          <a href="blog.html" class="tab {{activeClass .ActiveTab "blog"}}">Blog</a>
+          <a href="research.html" class="tab {{activeClass .ActiveTab "research"}}">Research</a>
+          <a href="resume.html" class="tab {{activeClass .ActiveTab "resume"}}">Experience</a>
+        </nav>
+        <div class="icons">
+          <a href="{{index .Settings "github_url"}}" aria-label="GitHub">GitHub</a>
+          <a href="{{index .Settings "linkedin_url"}}" aria-label="LinkedIn">LinkedIn</a>
+          <a href="mailto:{{index .Settings "email"}}" aria-label="Email">Email</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="content">
+          <h1>{{.ResearchPage.Title}}</h1>
+          <p class="meta">{{.ResearchPage.Meta}}</p>
+          {{safeHTML .ResearchPage.ContentHTML}}
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="content footer-content">
+        <div>
+          <a href="mailto:{{index .Settings "email"}}">{{index .Settings "email"}}</a>
+          <button class="copy" type="button" data-copy="{{index .Settings "email"}}">Copy</button>
+          <span>•</span>
+          <a href="tel:{{index .Settings "phone"}}">{{index .Settings "phone"}}</a>
+          <button class="copy" type="button" data-copy="{{index .Settings "phone"}}">Copy</button>
+        </div>
+        <div class="footer-meta">{{index .Settings "footer_meta"}}</div>
+      </div>
+    </footer>
+    <script type="module">
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const value = button.getAttribute("data-copy");
+          try {
+            await navigator.clipboard.writeText(value);
+            const previous = button.textContent;
+            button.textContent = "Copied";
+            setTimeout(() => {
+              button.textContent = previous;
+            }, 1200);
+          } catch (error) {
+            console.error(error);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
