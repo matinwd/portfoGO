@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Low-latency streaming pipelines in Rust | Amirhossein Akhlaghpour</title>
+    <meta
+      name="description"
+      content="Why Rust excels at ultra-low latency streaming pipelines and how to architect them."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container topbar">
+        <nav class="tabs">
+          <a href="index.html" class="tab">About</a>
+          <a href="blog.html" class="tab active">Blog</a>
+          <a href="research.html" class="tab">Research</a>
+          <a href="resume.html" class="tab">Experience</a>
+        </nav>
+        <div class="icons">
+          <a href="https://github.com/mehrbod2002" aria-label="GitHub">GitHub</a>
+          <a href="https://www.linkedin.com/in/amirhossein-akhlaghpour-84676392/" aria-label="LinkedIn">LinkedIn</a>
+          <a href="mailto:m9.akhlaghpoor@gmail.com" aria-label="Email">Email</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="content">
+          <h1>Low-latency streaming pipelines in Rust</h1>
+          <p class="meta">May 2024</p>
+
+          <h3>The Speed of Sound: Engineering Ultra-Low Latency Streaming Pipelines in Rust</h3>
+          <p>
+            In the world of data streaming, "fast" is a moving target. When your requirements move
+            from milliseconds to microseconds, the garbage-collected languages that served you well
+            in the past often hit a ceiling.
+          </p>
+          <p>
+            Enter Rust. It is not just a language for systems programming; it is becoming the gold
+            standard for high-performance data planes. Here is why Rust is the ultimate tool for
+            low-latency streaming and how to leverage it.
+          </p>
+
+          <h3>Zero-cost abstractions: the performance foundation</h3>
+          <p>
+            The primary reason Rust excels at streaming is its memory management model. Unlike Java
+            or Go, there is no garbage collector (GC) to pause your execution at the worst possible
+            moment.
+          </p>
+          <p>
+            <strong>Ownership and borrowing:</strong> Rust ensures memory safety at compile time. In a
+            streaming pipeline, this means you can pass large data buffers between processing stages
+            without copying them, while the compiler guarantees no two threads will cause a race
+            condition.
+          </p>
+          <p>
+            <strong>Monomorphization:</strong> Rust’s generics are expanded into specific code for each
+            type at compile time. Your hot loops are not wasting CPU cycles on dynamic dispatch or
+            type checking.
+          </p>
+
+          <h3>The architecture of a Rust stream</h3>
+          <p>
+            To achieve sub-millisecond latency, you need to think about how data moves through the
+            CPU and memory.
+          </p>
+          <h4>1) Zero-copy parsing</h4>
+          <p>
+            In a streaming pipeline, you are constantly turning raw bytes into structured data.
+            Using libraries like Nom or Spade, you can perform zero-copy parsing. Instead of creating
+            new strings or objects, your data structures hold references (slices) to the original
+            input buffer.
+          </p>
+          <h4>2) The async powerhouse: Tokio and Mio</h4>
+          <p>
+            While async is often associated with high concurrency, in Rust it is also about
+            efficiency. Using the Tokio runtime allows you to handle thousands of concurrent data
+            sources with minimal context switching. For even tighter control, developers use Mio for
+            direct, non-blocking I/O orchestration.
+          </p>
+          <h4>3) Lock-free data structures</h4>
+          <p>
+            Traditional mutexes are latency killers. In a high-speed pipeline, threads fighting for a
+            lock will cause jitter.
+          </p>
+          <p>
+            The solution: use LMAX Disruptor-style ring buffers or crossbeam-channel. These allow
+            producers and consumers to exchange data using atomic operations rather than heavy locks.
+          </p>
+
+          <h3>Optimizing the hot path</h3>
+          <p>
+            When every microsecond counts, your code needs to be mechanically sympathetic to the
+            underlying hardware.
+          </p>
+          <table>
+            <thead>
+              <tr>
+                <th>Technique</th>
+                <th>Why it matters</th>
+                <th>Rust implementation</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>SIMD</td>
+                <td>Processes multiple data points in one CPU cycle.</td>
+                <td>std::simd or packed_simd</td>
+              </tr>
+              <tr>
+                <td>Cache locality</td>
+                <td>Keeps data in L1/L2 cache to avoid slow RAM access.</td>
+                <td>Contiguous arrays (Vec)</td>
+              </tr>
+              <tr>
+                <td>Affinity</td>
+                <td>Pins threads to specific CPU cores to avoid migration.</td>
+                <td>core_affinity crate</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>The practical stack</h3>
+          <p>If you are building a Rust streaming pipeline today, these are the tools of the trade:</p>
+          <ul>
+            <li><strong>Data transport:</strong> rdkafka (Rust wrappers for librdkafka) for high-throughput ingestion.</li>
+            <li><strong>Serialization:</strong> Serde for general use, or FlatBuffers / Bincode for ultra-low overhead.</li>
+            <li><strong>State management:</strong> RocksDB or Persy for persistent, low-latency state storage.</li>
+          </ul>
+
+          <h3>The latency trap: what to avoid</h3>
+          <p>Even in Rust, you can write slow code. Watch out for:</p>
+          <ul>
+            <li><strong>Frequent allocations:</strong> Using String or Vec inside your main loop. Use pre-allocated buffers instead.</li>
+            <li><strong>Arc&lt;Mutex&lt;T&gt;&gt; overload:</strong> Excessive atomic reference counting can cause cache line contention.</li>
+            <li><strong>Unbounded channels:</strong> Always use bounded channels for backpressure.</li>
+          </ul>
+
+          <h3>Conclusion</h3>
+          <p>
+            Rust gives you the knobs and dials necessary to tune a system for the absolute limit of
+            the hardware. By removing the unpredictability of a garbage collector and providing the
+            tools for zero-copy processing, it allows you to build streaming pipelines that are not
+            just fast, but consistently fast.
+          </p>
+          <p><a href="blog.html">Back to Blog</a></p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="content footer-content">
+        <div>
+          <a href="mailto:m9.akhlaghpoor@gmail.com">m9.akhlaghpoor@gmail.com</a>
+          <button class="copy" type="button" data-copy="m9.akhlaghpoor@gmail.com">Copy</button>
+          <span>•</span>
+          <a href="tel:+447367046857">+44 7367 046857</a>
+          <button class="copy" type="button" data-copy="+447367046857">Copy</button>
+        </div>
+        <div class="footer-meta">Built with HTML, CSS, Mermaid.js. Lighthouse Score: 100/100.</div>
+      </div>
+    </footer>
+    <script type="module">
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const value = button.getAttribute("data-copy");
+          try {
+            await navigator.clipboard.writeText(value);
+            const previous = button.textContent;
+            button.textContent = "Copied";
+            setTimeout(() => {
+              button.textContent = previous;
+            }, 1200);
+          } catch (error) {
+            console.error(error);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
