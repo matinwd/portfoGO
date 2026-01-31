@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Comparing Concurrency Models | Amirhossein Akhlaghpour</title>
+    <meta
+      name="description"
+      content="Comparing Go channels vs Rust Arc/Mutex for deterministic scalability in high-throughput fintech systems."
+    />
+    <meta
+      name="keywords"
+      content="Concurrency, Microservices, Latency, System Architecture, Go, Rust, Fintech"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container topbar">
+        <nav class="tabs">
+          <a href="index.html" class="tab">About</a>
+          <a href="blog.html" class="tab">Blog</a>
+          <a href="research.html" class="tab active">Research</a>
+          <a href="resume.html" class="tab">Experience</a>
+        </nav>
+        <div class="icons">
+          <a href="https://github.com/mehrbod2002" aria-label="GitHub">GitHub</a>
+          <a href="https://www.linkedin.com/in/amirhossein-akhlaghpour-84676392/" aria-label="LinkedIn"
+            >LinkedIn</a
+          >
+          <a href="mailto:m9.akhlaghpoor@gmail.com" aria-label="Email">Email</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="content">
+          <h1>Comparing Concurrency Models: Go Channels vs. Rust Arc/Mutex in High-Throughput Fintech</h1>
+          <p class="meta">Deep dive</p>
+
+          <h3>Overview</h3>
+          <p>
+            In high-throughput financial systems, the choice of concurrency primitives directly
+            impacts tail latency and system reliability. While Golang’s CSP-based model focuses on
+            simplicity and "sharing memory by communicating," Rust’s memory-safety guarantees allow
+            for high-performance shared-state concurrency using atomics and smart pointers. This
+            article explores the trade-offs encountered while building transactional pipelines at
+            scale.
+          </p>
+
+          <h3>1. The Go Approach: CSP and Channel Orchestration</h3>
+          <p>
+            Go’s primary strength in fintech services is its lightweight scheduler and
+            <code>channels</code>. In my experience building microservices at InfoStride, we used
+            channels to decouple transaction ingestion from persistent storage.
+          </p>
+          <p>
+            <strong>Pros:</strong> Minimal boilerplate for worker pools and excellent handling of
+            asynchronous I/O.
+          </p>
+          <p>
+            <strong>The Challenge:</strong> In extreme high-load scenarios, channel contention can
+            introduce unpredictable latency spikes. Under heavy backpressure, the overhead of the Go
+            runtime scheduler (G-M-P model) becomes visible when managing tens of thousands of
+            concurrent goroutines.
+          </p>
+          <pre class="code-block"><code>// Go: incrementing a counter with a channel
+package main
+
+import "fmt"
+
+func main() {
+  ch := make(chan int)
+  go func() {
+    count := 0
+    for v := range ch {
+      count += v
+      fmt.Println(count)
+    }
+  }()
+  ch <- 1
+  close(ch)
+}</code></pre>
+
+          <h3>2. The Rust Approach: Ownership and Fearless Concurrency</h3>
+          <p>
+            When sub-millisecond latency is non-negotiable—such as in order-matching engines or
+            blockchain middleware—Rust’s <code>Arc&lt;Mutex&lt;T&gt;&gt;</code> or
+            <code>RwLock&lt;T&gt;</code> often outperform CSP.
+          </p>
+          <p>
+            <strong>Memory Safety:</strong> Rust’s borrow checker ensures that data races are caught
+            at compile time, a critical feature when handling sensitive financial state.
+          </p>
+          <p>
+            <strong>Performance:</strong> Unlike Go, Rust does not have a garbage collector (GC),
+            meaning there are no "Stop-the-World" pauses during high-frequency trading or streaming.
+          </p>
+          <p>
+            <strong>The Trade-off:</strong> Implementing shared state in Rust requires a deeper
+            understanding of memory ownership and lock granularity to avoid deadlocks.
+          </p>
+          <pre class="code-block"><code>// Rust: incrementing a counter with Arc<Mutex<i32>>
+use std::sync::{Arc, Mutex};
+use std::thread;
+
+fn main() {
+  let counter = Arc::new(Mutex::new(0));
+  let counter_clone = Arc::clone(&counter);
+  let handle = thread::spawn(move || {
+    let mut num = counter_clone.lock().unwrap();
+    *num += 1;
+    println!("{}", *num);
+  });
+  handle.join().unwrap();
+}</code></pre>
+
+          <h3>3. Real-world Comparison: A Transaction Pipeline Case Study</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Golang (Channels)</th>
+                <th>Rust (Arc/Mutex)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Development Speed</td>
+                <td>High (Rapid Iteration)</td>
+                <td>Moderate (Strict Type System)</td>
+              </tr>
+              <tr>
+                <td>Latency Consistency</td>
+                <td>Occasional GC/Scheduler Spikes</td>
+                <td>Deterministic</td>
+              </tr>
+              <tr>
+                <td>Resource Efficiency</td>
+                <td>Low Memory Footprint</td>
+                <td>Minimal (Near C++)</td>
+              </tr>
+              <tr>
+                <td>Complexity</td>
+                <td>Simple Composition</td>
+                <td>High (Lifetime Management)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>4. Conclusion: Which one to choose?</h3>
+          <p>
+            For most microservices where developer velocity and "good enough" performance are key,
+            <strong>Go</strong> remains the industry standard. However, for systems requiring
+            deterministic scalability and zero-overhead concurrency—like the RTMP streaming services
+            in our LMS project—<strong>Rust</strong> is the superior choice.
+          </p>
+          <p>
+            In my current workflow, I bridge these two worlds: using Go for robust API orchestration
+            and Rust for the high-performance core logic where every microsecond counts.
+          </p>
+          <p>Related work: <a href="index.html#showcase">InfoStride and LMS case studies</a>.</p>
+          <p><a href="research.html">Back to Research</a></p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="content footer-content">
+        <div>
+          <a href="mailto:m9.akhlaghpoor@gmail.com">m9.akhlaghpoor@gmail.com</a>
+          <button class="copy" type="button" data-copy="m9.akhlaghpoor@gmail.com">Copy</button>
+          <span>•</span>
+          <a href="tel:+447367046857">+44 7367 046857</a>
+          <button class="copy" type="button" data-copy="+447367046857">Copy</button>
+        </div>
+        <div class="footer-meta">Built with HTML, CSS, Mermaid.js. Lighthouse Score: 100/100.</div>
+      </div>
+    </footer>
+    <script type="module">
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const value = button.getAttribute("data-copy");
+          try {
+            await navigator.clipboard.writeText(value);
+            const previous = button.textContent;
+            button.textContent = "Copied";
+            setTimeout(() => {
+              button.textContent = previous;
+            }, 1200);
+          } catch (error) {
+            console.error(error);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

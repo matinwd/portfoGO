@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Amirhossein Akhlaghpour | Systems & Backend Developer</title>
+    <meta
+      name="description"
+      content="Senior Systems & Backend Developer specializing in Go, Rust, and cloud-native infrastructure for high-throughput platforms."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container topbar">
+        <nav class="tabs">
+          <a href="index.html" class="tab active">About</a>
+          <a href="blog.html" class="tab">Blog</a>
+          <a href="research.html" class="tab">Research</a>
+          <a href="resume.html" class="tab">Experience</a>
+        </nav>
+        <div class="icons">
+          <a href="https://github.com/mehrbod2002" aria-label="GitHub">GitHub</a>
+          <a href="https://www.linkedin.com/in/amirhossein-akhlaghpour-84676392/" aria-label="LinkedIn"
+            >LinkedIn</a
+          >
+          <a href="mailto:m9.akhlaghpoor@gmail.com" aria-label="Email">Email</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="section about" id="about">
+        <div class="content">
+          <div class="intro">
+            <img src="assets/Amirhossein_Akhlaghpoor_Pic.jpg" alt="Amirhossein Akhlaghpour" />
+            <div>
+              <h1>
+                Amirhossein Akhlaghpour
+                <span class="availability">● Based in UK (UTC+0)</span>
+              </h1>
+              <p class="subtitle">Senior Systems & Backend Developer</p>
+            </div>
+          </div>
+          <p>
+            Senior systems and backend engineer with 6+ years building Go/Rust platforms for fintech
+            and blockchain products, from high-throughput APIs to low-latency streaming services.
+          </p>
+          <p>
+            I have led microservice re-architecture, event-driven data pipelines, and Kubernetes/AWS
+            deployments, improving reliability, scalability, and delivery speed while keeping costs
+            predictable.
+          </p>
+          <p>
+            Known for clean system design, secure middleware, and pragmatic execution—turning complex
+            requirements into production-ready systems that teams can operate and evolve.
+          </p>
+        </div>
+      </section>
+
+      <section class="section skills" id="skills">
+        <div class="content">
+          <h2>Technical Mastery</h2>
+          <div class="list-grid">
+            <div>
+              <h4>Languages</h4>
+              <p>Golang, Rust, TypeScript</p>
+            </div>
+            <div>
+              <h4>Infrastructure & DevOps</h4>
+              <p>AWS (Lambda, DynamoDB, SQS), Kubernetes (CKA), Terraform</p>
+            </div>
+            <div id="ethereum">
+              <h4>Blockchain</h4>
+              <p>Ethereum, Solidity, Smart Contracts, Chainlink</p>
+            </div>
+            <div id="grpc">
+              <h4>Backend Ecosystem</h4>
+              <p>gRPC, <span id="kafka">Kafka</span>, Redis, Prometheus/Grafana</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section trust" id="trust">
+        <div class="content">
+          <h2>Trust Signals</h2>
+          <div class="trust">
+            <div class="badge-row">
+              <img
+                src="assets/aws_cert.png"
+                alt="AWS Certified Developer – Associate"
+              />
+              <img
+                src="assets/kubernetes_cert.png"
+                alt="Certified Kubernetes Administrator (CKA)"
+              />
+              <img
+                src="assets/terraform_cert.png"
+                alt="Terraform Associate"
+              />
+            </div>
+            
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="content footer-content">
+        <div>
+          <a href="mailto:m9.akhlaghpoor@gmail.com">m9.akhlaghpoor@gmail.com</a>
+          <button class="copy" type="button" data-copy="m9.akhlaghpoor@gmail.com">Copy</button>
+          <span>•</span>
+          <a href="tel:+447367046857">+44 7367 046857</a>
+          <button class="copy" type="button" data-copy="+447367046857">Copy</button>
+        </div>
+        <div class="footer-meta">Built with HTML, CSS, Mermaid.js. Lighthouse Score: 100/100.</div>
+      </div>
+    </footer>
+
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: true, theme: "dark" });
+
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const value = button.getAttribute("data-copy");
+          try {
+            await navigator.clipboard.writeText(value);
+            const previous = button.textContent;
+            button.textContent = "Copied";
+            setTimeout(() => {
+              button.textContent = previous;
+            }, 1200);
+          } catch (error) {
+            console.error(error);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

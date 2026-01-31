@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Experience | Amirhossein Akhlaghpour</title>
+    <meta name="description" content="Resume for Amirhossein Akhlaghpour, Senior Systems & Backend Developer." />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container topbar">
+        <nav class="tabs">
+          <a href="index.html" class="tab">About</a>
+          <a href="blog.html" class="tab">Blog</a>
+          <a href="research.html" class="tab">Research</a>
+          <a href="resume.html" class="tab active">Experience</a>
+        </nav>
+        <div class="icons">
+          <a href="https://github.com/mehrbod2002" aria-label="GitHub">GitHub</a>
+          <a href="https://www.linkedin.com/in/amirhossein-akhlaghpour-84676392/" aria-label="LinkedIn"
+            >LinkedIn</a
+          >
+          <a href="mailto:m9.akhlaghpoor@gmail.com" aria-label="Email">Email</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="content">
+          <h1>Experience</h1>
+          <div class="resume-grid">
+            <div class="resume-col">
+              <h4>Experience</h4>
+              <div class="resume-item">
+                <div>
+                  <strong>InfoStride</strong> — Senior Systems & Backend Developer
+                  <p>Go/Rust microservices, AWS Lambda/SQS, Terraform automation.</p>
+                </div>
+                <span>2024–2025</span>
+              </div>
+              <div class="resume-item">
+                <div>
+                  <strong>Novatore Solutions</strong> — Backend Developer
+                  <p>Ethereum middleware, Kafka/gRPC pipelines, CI/CD automation.</p>
+                </div>
+                <span>2022–2024</span>
+              </div>
+              <div class="resume-item">
+                <div>
+                  <strong>Livemindz</strong> — Backend Developer
+                  <p>Go/Rust microservices, JWT gateways, Redis queues.</p>
+                </div>
+                <span>2019–2022</span>
+              </div>
+            </div>
+            <div class="resume-col">
+              <h4>Certifications</h4>
+              <div class="badge-row">
+                <img
+                  src="assets/aws_cert.png"
+                  alt="AWS Certified Developer – Associate"
+                />
+                <img
+                  src="assets/kubernetes_cert.png"
+                  alt="Certified Kubernetes Administrator (CKA)"
+                />
+                <img
+                  src="assets/terraform_cert.png"
+                  alt="Terraform Associate"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="list-grid">
+            <div>
+              <h4>Languages</h4>
+              <p>Golang, Rust, TypeScript</p>
+            </div>
+            <div>
+              <h4>Infrastructure & DevOps</h4>
+              <p>AWS (Lambda, DynamoDB, SQS), Kubernetes (CKA), Terraform</p>
+            </div>
+            <div>
+              <h4>Blockchain</h4>
+              <p>Ethereum, Solidity, Smart Contracts, Chainlink</p>
+            </div>
+            <div>
+              <h4>Backend Ecosystem</h4>
+              <p>gRPC, Kafka, Redis, Prometheus/Grafana</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="content footer-content">
+        <div>
+          <a href="mailto:m9.akhlaghpoor@gmail.com">m9.akhlaghpoor@gmail.com</a>
+          <button class="copy" type="button" data-copy="m9.akhlaghpoor@gmail.com">Copy</button>
+          <span>•</span>
+          <a href="tel:+447367046857">+44 7367 046857</a>
+          <button class="copy" type="button" data-copy="+447367046857">Copy</button>
+        </div>
+        <div class="footer-meta">Built with HTML, CSS, Mermaid.js. Lighthouse Score: 100/100.</div>
+      </div>
+    </footer>
+    <script type="module">
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const value = button.getAttribute("data-copy");
+          try {
+            await navigator.clipboard.writeText(value);
+            const previous = button.textContent;
+            button.textContent = "Copied";
+            setTimeout(() => {
+              button.textContent = previous;
+            }, 1200);
+          } catch (error) {
+            console.error(error);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
