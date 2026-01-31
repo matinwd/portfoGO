@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Comparing Heap Allocation in Go vs. Rust | Amirhossein Akhlaghpour</title>
+    <meta
+      name="description"
+      content="GC vs ownership: how Go and Rust handle heap allocations, performance trade-offs, and developer ergonomics."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container topbar">
+        <nav class="tabs">
+          <a href="index.html" class="tab">About</a>
+          <a href="blog.html" class="tab active">Blog</a>
+          <a href="research.html" class="tab">Research</a>
+          <a href="resume.html" class="tab">Experience</a>
+        </nav>
+        <div class="icons">
+          <a href="https://github.com/mehrbod2002" aria-label="GitHub">GitHub</a>
+          <a href="https://www.linkedin.com/in/amirhossein-akhlaghpour-84676392/" aria-label="LinkedIn">LinkedIn</a>
+          <a href="mailto:m9.akhlaghpoor@gmail.com" aria-label="Email">Email</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="content">
+          <h1>Comparing Heap Allocation in Go vs. Rust</h1>
+          <p class="meta">Jan 2025</p>
+          <p>
+            In the world of high-performance systems, memory is the final frontier. While both Go
+            and Rust are modern, powerful, and efficient, they handle the heap—the memory used for
+            dynamic allocations—with fundamentally different philosophies.
+          </p>
+          <p>
+            If you are a developer moving between these two languages, understanding these
+            differences is the key to preventing memory leaks in Rust and latency spikes in Go.
+          </p>
+
+          <h3>1. The Core Philosophy: GC vs. Ownership</h3>
+          <p>The primary difference lies in who is responsible for cleaning up the heap.</p>
+
+          <h4>Go: The Hands-Off Approach</h4>
+          <p>
+            Go uses a garbage collector (GC). When you create an object, the Go runtime decides
+            whether to put it on the stack or the heap (via escape analysis). If it lands on the
+            heap, the GC will eventually scan your memory and reclaim what you are not using.
+          </p>
+          <p><strong>Pros:</strong> High developer productivity; no need to worry about manual memory management.</p>
+          <p><strong>Cons:</strong> Non-deterministic stop-the-world pauses (even if sub-millisecond).</p>
+
+          <h4>Rust: The Pay-as-you-go Approach</h4>
+          <p>
+            Rust uses an ownership and borrowing model. Memory is tied to the scope of a variable.
+            When a variable goes out of scope, its memory is freed immediately. No collector, no
+            background scanning, just deterministic cleanup.
+          </p>
+          <p><strong>Pros:</strong> Zero-cost abstractions; predictable performance; no GC overhead.</p>
+          <p><strong>Cons:</strong> The borrow checker can be difficult for beginners to navigate.</p>
+
+          <h3>2. Visualizing Memory Lifecycle</h3>
+          <p>
+            In Go, memory stays alive as long as there is a pointer to it. In Rust, memory stays
+            alive as long as the owner is alive.
+          </p>
+
+          <h3>3. Code Example: Allocating a Struct</h3>
+          <p>
+            Let us see how both languages handle a simple scenario: creating a user on the heap.
+          </p>
+
+          <h4>Go: Escape Analysis</h4>
+          <p>In Go, you do not explicitly say put this on the heap. The compiler decides.</p>
+          <pre class="code-block"><code>type User struct {
+    ID int
+}
+
+func CreateUser() *User {
+    u := User{ID: 1}
+    return &u // This escapes to the heap because it's returned as a pointer
+}</code></pre>
+          <p>
+            What happens: the compiler sees you are returning a pointer to a local variable. Since
+            that variable needs to outlive the function call, Go moves it to the heap. The GC tracks
+            this User and deletes it only when nobody holds a pointer to it anymore.
+          </p>
+
+          <h4>Rust: Explicit Box</h4>
+          <p>In Rust, you are explicit about where data lives.</p>
+          <pre class="code-block"><code>struct User {
+    id: i32,
+}
+
+fn create_user() -> Box<User> {
+    let u = User { id: 1 };
+    Box::new(u) // Explicitly move the User to the heap
+} // Memory is NOT freed here because the Box was returned to the caller</code></pre>
+          <p>
+            What happens: using Box&lt;T&gt; explicitly puts the User on the heap. The caller now owns
+            that box. As soon as the caller is finished and the variable goes out of scope, the
+            memory is freed instantly—no waiting for a GC cycle.
+          </p>
+
+          <h3>4. Fragmentation and the Stutter</h3>
+          <p>
+            Because Go manages memory for you, it has to deal with fragmentation. Over time, the
+            heap can become a Swiss cheese of used and unused blocks.
+          </p>
+          <p><strong>Go's strategy:</strong> Uses a TCMalloc-style allocator with size classes.</p>
+          <p><strong>Rust's strategy:</strong> Typically uses jemalloc or the system allocator; stack usage keeps heap pressure lower.</p>
+
+          <h3>5. Performance Implications</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>Go</th>
+                <th>Rust</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Allocation speed</td>
+                <td>Very fast (bumping a pointer)</td>
+                <td>Fast (system call or jemalloc)</td>
+              </tr>
+              <tr>
+                <td>Cleanup speed</td>
+                <td>Delayed (GC cycles)</td>
+                <td>Instant (deterministic)</td>
+              </tr>
+              <tr>
+                <td>CPU overhead</td>
+                <td>Higher (GC background work)</td>
+                <td>Negligible</td>
+              </tr>
+              <tr>
+                <td>Developer effort</td>
+                <td>Low</td>
+                <td>High (initial learning curve)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>Which one should you choose?</h3>
+          <p>
+            Choose Go if you need to build microservices quickly, value developer velocity, and can
+            tolerate the small overhead of a garbage collector.
+          </p>
+          <p>
+            Choose Rust if you are building critical path infrastructure where every microsecond
+            matters and you want absolute control over your hardware.
+          </p>
+          <p><a href="blog.html">Back to Blog</a></p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="content footer-content">
+        <div>
+          <a href="mailto:m9.akhlaghpoor@gmail.com">m9.akhlaghpoor@gmail.com</a>
+          <button class="copy" type="button" data-copy="m9.akhlaghpoor@gmail.com">Copy</button>
+          <span>•</span>
+          <a href="tel:+447367046857">+44 7367 046857</a>
+          <button class="copy" type="button" data-copy="+447367046857">Copy</button>
+        </div>
+        <div class="footer-meta">Built with HTML, CSS, Mermaid.js. Lighthouse Score: 100/100.</div>
+      </div>
+    </footer>
+    <script type="module">
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const value = button.getAttribute("data-copy");
+          try {
+            await navigator.clipboard.writeText(value);
+            const previous = button.textContent;
+            button.textContent = "Copied";
+            setTimeout(() => {
+              button.textContent = previous;
+            }, 1200);
+          } catch (error) {
+            console.error(error);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
