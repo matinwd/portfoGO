@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scaling blockchain middleware with Kafka and gRPC | Amirhossein Akhlaghpour</title>
+    <meta
+      name="description"
+      content="Deep dive on engineering resilient blockchain middleware with Go, gRPC, and Kafka."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container topbar">
+        <nav class="tabs">
+          <a href="index.html" class="tab">About</a>
+          <a href="blog.html" class="tab active">Blog</a>
+          <a href="research.html" class="tab">Research</a>
+          <a href="resume.html" class="tab">Experience</a>
+        </nav>
+        <div class="icons">
+          <a href="https://github.com/mehrbod2002" aria-label="GitHub">GitHub</a>
+          <a href="https://www.linkedin.com/in/amirhossein-akhlaghpour-84676392/" aria-label="LinkedIn">LinkedIn</a>
+          <a href="mailto:m9.akhlaghpoor@gmail.com" aria-label="Email">Email</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="content">
+          <h1>Scaling blockchain middleware with Kafka and gRPC</h1>
+          <p class="meta">Aug 2024</p>
+
+          <h3>Deep Dive: Engineering a Resilient Blockchain Pipeline</h3>
+          <h3>The Blueprint: Scaling Middleware with Go, gRPC, and Kafka</h3>
+          <p>
+            When building middleware for the Web3 ecosystem, you aren't just building an API; you are
+            building a high-integrity bridge. The challenge is twofold: you need the ultra-low latency
+            of gRPC to keep developers happy, and the durability of Kafka to ensure transactions
+            survive the volatile nature of distributed ledgers.
+          </p>
+          <p>
+            Here is a technical breakdown of how to architect this stack for massive scale.
+          </p>
+
+          <h3>The Architecture of Decoupling</h3>
+          <p>
+            The primary reason middleware fails is tight coupling. If your gRPC server waits for a
+            blockchain node to confirm a transaction before responding to the user, your throughput
+            is capped by the block time.
+          </p>
+          <p>
+            Instead, we treat the middleware as a Buffered Write-Ahead System:
+          </p>
+          <ul>
+            <li><strong>Ingress (gRPC):</strong> Acts as the high-speed gateway.</li>
+            <li><strong>Persistence (Kafka):</strong> Acts as the immutable log of intent.</li>
+            <li><strong>Execution (Go Workers):</strong> Acts as the bridge to the chain.</li>
+          </ul>
+
+          <h3>Why gRPC is the Correct Choice for Ingress</h3>
+          <p>
+            In blockchain applications, data payloads (like RLP-encoded transactions or large state
+            proofs) can be bulky.
+          </p>
+          <p>
+            <strong>Binary serialization:</strong> Protocol Buffers (protobuf) reduce payload sizes by
+            up to 60% compared to JSON, saving significant bandwidth at scale.
+          </p>
+          <p>
+            <strong>Multiplexing:</strong> Using a single TCP connection for multiple streams prevents
+            the head-of-line blocking issues common in standard REST implementations.
+          </p>
+          <p>
+            <strong>Implementation note:</strong> Always implement interceptors in your Go gRPC server.
+            These handle authentication, rate limiting, and tracing before requests hit your business
+            logic.
+          </p>
+
+          <h3>Kafka: Solving the Backpressure Problem</h3>
+          <p>
+            Blockchain nodes (Geth, Erigon, Solana-validator) are notorious for inconsistent
+            performance. If a node falls behind on syncing or hits a heavy resource period, it will
+            slow down your entire stack.
+          </p>
+          <p>
+            Kafka partitions are your scaling lever. By partitioning your transaction topics, you can
+            spin up multiple Go consumer groups. This allows you to:
+          </p>
+          <ul>
+            <li><strong>Buffer spikes:</strong> Kafka holds bursts safely while workers process at a sustainable rate.</li>
+            <li><strong>Ensure ordering:</strong> Use SenderAddress or AccountID as the partition key.</li>
+          </ul>
+
+          <h3>The Go Worker Pattern</h3>
+          <p>
+            The magic happens in the background workers. A robust Go implementation should follow
+            this pattern:
+          </p>
+          <pre class="code-block"><code>// Simplified Consumer Loop
+for msg := range claims {
+    // 1. Validate the transaction signature
+    // 2. Broadcast to the blockchain node
+    // 3. Monitor for 'In-Block' status
+    // 4. Commit the Kafka offset ONLY after successful broadcast
+}</code></pre>
+          <p>
+            By only committing the Kafka offset after the blockchain node acknowledges receipt, you
+            ensure at-least-once delivery. If a worker crashes, the next one resumes where it left off.
+          </p>
+
+          <h3>Dealing with Chain Reorgs</h3>
+          <p>
+            A transaction being sent isn't the same as it being final. Your middleware must account
+            for the fact that the blockchain's history can change.
+          </p>
+          <p>
+            <strong>The tracking store:</strong> Use a fast key-value store (like Redis or BadgerDB) to
+            track transaction status.
+          </p>
+          <p>
+            <strong>The observer:</strong> Implement a watcher service in Go that consumes a
+            "Confirmed Blocks" Kafka topic to update statuses once transactions reach a confirmation
+            depth (for example, 12+ confirmations on Ethereum).
+          </p>
+
+          <h3>Final Engineering Requirements</h3>
+          <p>To move from prototype to production, check these boxes:</p>
+          <ul>
+            <li><strong>Schema registry:</strong> Use Confluent Schema Registry to manage protobuf versions.</li>
+            <li><strong>Circuit breakers:</strong> Stop sending if node providers return errors; let Kafka buffer.</li>
+            <li><strong>Compression:</strong> Enable lz4 or snappy on producers for network and IO gains.</li>
+          </ul>
+
+          <p><a href="blog.html">Back to Blog</a></p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="content footer-content">
+        <div>
+          <a href="mailto:m9.akhlaghpoor@gmail.com">m9.akhlaghpoor@gmail.com</a>
+          <button class="copy" type="button" data-copy="m9.akhlaghpoor@gmail.com">Copy</button>
+          <span>•</span>
+          <a href="tel:+447367046857">+44 7367 046857</a>
+          <button class="copy" type="button" data-copy="+447367046857">Copy</button>
+        </div>
+        <div class="footer-meta">Built with HTML, CSS, Mermaid.js. Lighthouse Score: 100/100.</div>
+      </div>
+    </footer>
+    <script type="module">
+      document.querySelectorAll("[data-copy]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const value = button.getAttribute("data-copy");
+          try {
+            await navigator.clipboard.writeText(value);
+            const previous = button.textContent;
+            button.textContent = "Copied";
+            setTimeout(() => {
+              button.textContent = previous;
+            }, 1200);
+          } catch (error) {
+            console.error(error);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
